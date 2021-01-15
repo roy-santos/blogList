@@ -1,0 +1,19 @@
+{
+  "name": "bloglist",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/roy-santos/blogList.git"
+  },
+  "author": "Roy Santos",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/roy-santos/blogList/issues"
+  },
+  "homepage": "https://github.com/roy-santos/blogList#readme"
+}
