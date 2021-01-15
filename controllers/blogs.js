@@ -20,7 +20,7 @@ blogsRouter.get('/:id', (request, response, next) => {
 })
 
 blogsRouter.post('/', (request, response, next) => {
-  const blog = request.body
+  const blog = new Blog(request.body)
 
   blog.save()
     .then(result => {
