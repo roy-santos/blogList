@@ -1,0 +1,12 @@
+GET http://localhost:3003/api/blogs
+
+###
+POST http://localhost:3003/api/blogs
+Content-Type: application/json
+
+{
+    "title": "How to Use MongoDB",
+    "author": "Josh Groban",
+    "url": "http://www.mediumblog.com/articles/how-to-use-mongodb",
+    "likes": 4
+}
