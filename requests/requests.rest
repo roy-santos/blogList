@@ -5,8 +5,19 @@ POST http://localhost:3003/api/blogs
 Content-Type: application/json
 
 {
-    "title": "Project Structure Best Practices",
+    //"title": "TEST",
     "author": "Marcus Grenier",
     "url": "http://www.mediumblog.com/articles/psbp",
     "likes": 4
+}
+
+###
+PUT http://localhost:3003/api/blogs/6008847232983d055c064xxx
+Content-Type: application/json
+
+{
+    "likes": 99,
+    "title": "Test3",
+    "author": "Marcus Grenier II",
+    "url": "http://www.mediumblog.com/articles/psbpII"
 }
