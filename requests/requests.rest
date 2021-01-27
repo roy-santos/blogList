@@ -5,7 +5,7 @@ POST http://localhost:3003/api/blogs
 Content-Type: application/json
 
 {
-    //"title": "TEST",
+    "title": "Create new blog with user field added",
     "author": "Marcus Grenier",
     "url": "http://www.mediumblog.com/articles/psbp",
     "likes": 4
