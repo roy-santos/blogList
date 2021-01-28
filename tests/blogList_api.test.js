@@ -7,7 +7,6 @@ const helper = require('./test_helper')
 
 const User = require('../models/user')
 const Blog = require('../models/blog')
-const usersRouter = require('../controllers/users')
 
 beforeEach(async () => {
   await Blog.deleteMany({})
@@ -16,6 +15,8 @@ beforeEach(async () => {
     let blogObjects = new Blog(blog)
     await blogObjects.save()
   }
+
+
 })
 
 describe('when there are initially some blogs saved', () => {
@@ -80,9 +81,28 @@ describe('viewing a specific blog', () => {
 })
 
 describe('addition of a new blog', () => {
+  let token =  null
+
+  beforeAll(async () => {
+    await User.deleteMany({})
+
+    const passwordHash = await bcrypt.hash('sekret', 10)
+    const user = new User({ username: 'jobin12', passwordHash })
+
+    await user.save()
+
+    // Login
+    const response = await api
+      .post('/api/login')
+      .send({ username: 'jobin12', password: 'sekret' })
+
+    token = response.body.token
+  })
+
   test('succeeds with valid data', async () => {
     await api
       .post('/api/blogs')
+      .set('Authorization', `bearer ${token}`)
       .send(helper.validBlog)
       .expect(201)
       .expect('Content-Type', /application\/json/)
@@ -97,9 +117,33 @@ describe('addition of a new blog', () => {
     )
   })
 
+  test('fails with missing token', async () => {
+    await api
+      .post('/api/blogs')
+      .send(helper.validBlog)
+      .expect(401)
+      .expect('Content-Type', /application\/json/)
+
+    const blogsAtEnd = await helper.blogsInDb()
+    expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length )
+  })
+
+  test('fails with invalid token', async () => {
+    await api
+      .post('/api/blogs')
+      .set('Authorization', 'bearer invalidToken12345')
+      .send(helper.validBlog)
+      .expect(401)
+      .expect('Content-Type', /application\/json/)
+
+    const blogsAtEnd = await helper.blogsInDb()
+    expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length )
+  })
+
   test('a blog with missing likes property defaults to 0', async () => {
     const response = await api
       .post('/api/blogs')
+      .set('Authorization', `bearer ${token}`)
       .send(helper.noLikesBlog)
       .expect(201)
       .expect('Content-Type', /application\/json/)
@@ -110,34 +154,65 @@ describe('addition of a new blog', () => {
   test('responds with status 400 if blog is missing title and/or url', async () => {
     await api
       .post('/api/blogs')
+      .set('Authorization', `bearer ${token}`)
       .send(helper.missingTitleBlog)
       .expect(400)
 
     await api
       .post('/api/blogs')
+      .set('Authorization', `bearer ${token}`)
       .send(helper.missingUrlBlog)
       .expect(400)
 
     await api
       .post('/api/blogs')
+      .set('Authorization', `bearer ${token}`)
       .send(helper.missingTitleUrlBlog)
       .expect(400)
   })
 })
 
 describe('deletion of a blog', () => {
+  let token =  null
+
+  beforeEach(async () => {
+    await Blog.deleteMany({})
+    await User.deleteMany({})
+
+    const passwordHash = await bcrypt.hash('sekret', 10)
+    const user = new User({ username: 'jobin12', passwordHash })
+
+    await user.save()
+
+    // Login and get token
+    const response = await api
+      .post('/api/login')
+      .send({ username: 'jobin12', password: 'sekret' })
+
+    token = response.body.token
+
+    await api
+      .post('/api/blogs')
+      .set('Authorization', `bearer ${token}`)
+      .send(helper.validBlog)
+      .expect(201)
+      .expect('Content-Type', /application\/json/)
+  })
+
   test('succeeds with status code 204 if id is valid', async () => {
-    const blogsAtStart = await helper.blogsInDb()
+    const blogsAtStart = await Blog.find({}).populate('user')
     const blogToDelete = blogsAtStart[0]
 
     await api
       .delete(`/api/blogs/${blogToDelete.id}`)
+      .set('Authorization', `bearer ${token}`)
       .expect(204)
 
-    const blogsAtEnd = await helper.blogsInDb()
+    const blogsAtEnd = await Blog.find({}).populate('user')
 
+    expect(blogsAtStart).toHaveLength(1)
     expect(blogsAtEnd).toHaveLength(
-      helper.initialBlogs.length - 1
+      blogsAtStart.length - 1
     )
 
     const titles = blogsAtEnd.map(r => r.title)
@@ -150,6 +225,7 @@ describe('deletion of a blog', () => {
 
     await api
       .delete(`/api/blogs/${invalidId}`)
+      .set('Authorization', `bearer ${token}`)
       .expect(400)
   })
 })
